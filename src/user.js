@@ -12,6 +12,11 @@ class User {
     return this.email;
   }
 
+  // New method to check if the user is valid
+  isValid() {
+    return this.name && this.email && this.email.includes('@');
+  }
+
   toString() {
     return `User: ${this.name} (${this.email})`;
   }
