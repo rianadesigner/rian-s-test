@@ -1,0 +1,241 @@
+{
+  "metadata": {
+    "generatedAt": "2024-05-20T00:00:00Z",
+    "source": "IFlow Solutions planning workspace",
+    "description": "Snapshot of teams, initiatives, and key metrics for quarterly review"
+  },
+  "organization": {
+    "name": "IFlow Solutions",
+    "mission": "Help distributed teams automate repeatable workflows with human oversight.",
+    "headquarters": {
+      "city": "Portland",
+      "state": "OR",
+      "country": "USA"
+    },
+    "operatingPrinciples": [
+      "Bias for clarity",
+      "Customer empathy",
+      "Ship with confidence"
+    ]
+  },
+  "departments": [
+    {
+      "id": "product",
+      "name": "Product Management",
+      "leader": "Leah Singh",
+      "budget": 1250000,
+      "focusAreas": ["Roadmap", "Customer Research", "Adoption"],
+      "quarterlyGoals": {
+        "okrs": [
+          {
+            "objective": "Deliver automation templates tailored to top 3 industries",
+            "keyResults": [
+              "Ship 6 industry-specific templates",
+              "Increase active template usage by 25%"
+            ]
+          }
+        ],
+        "health": "on_track"
+      }
+    },
+    {
+      "id": "engineering",
+      "name": "Engineering",
+      "leader": "Carlos Mendez",
+      "budget": 2900000,
+      "focusAreas": ["Platform Stability", "Scalability", "Developer Experience"],
+      "quarterlyGoals": {
+        "okrs": [
+          {
+            "objective": "Accelerate delivery while improving quality",
+            "keyResults": [
+              "Cut build queue time to under 5 minutes",
+              "Raise automated coverage to 82%",
+              "Keep customer-reported incidents under 3 per month"
+            ]
+          }
+        ],
+        "health": "at_risk"
+      }
+    }
+  ],
+  "people": {
+    "leaders": [
+      {
+        "id": "emp-001",
+        "name": "Rian Keller",
+        "role": "CEO",
+        "location": "Seattle, WA",
+        "tenureYears": 10
+      },
+      {
+        "id": "emp-002",
+        "name": "Leah Singh",
+        "role": "VP of Product",
+        "location": "Toronto, ON",
+        "tenureYears": 4
+      },
+      {
+        "id": "emp-003",
+        "name": "Carlos Mendez",
+        "role": "Head of Engineering",
+        "location": "Austin, TX",
+        "tenureYears": 5
+      }
+    ],
+    "individualContributors": [
+      {
+        "id": "emp-004",
+        "name": "Priya Shah",
+        "role": "Staff Software Engineer",
+        "squad": "Platform Reliability",
+        "skills": ["Go", "Kubernetes", "Observability"],
+        "mentors": ["emp-003"],
+        "status": "available_for_mentoring"
+      },
+      {
+        "id": "emp-005",
+        "name": "Theo Anders",
+        "role": "Product Operations Manager",
+        "squad": "Automation Hub",
+        "skills": ["Workflow analysis", "User research", "Systems thinking"],
+        "mentors": ["emp-002"],
+        "status": "allocated"
+      }
+    ]
+  },
+  "initiatives": [
+    {
+      "id": "init-automation-hub",
+      "name": "Automation Hub 3.0",
+      "status": "executing",
+      "launchWindow": "2024-Q4",
+      "sponsorId": "emp-001",
+      "team": {
+        "productManagerId": "emp-005",
+        "techLeadId": "emp-004",
+        "designLeadId": "emp-002"
+      },
+      "milestones": [
+        {
+          "name": "API stabilization",
+          "dueDate": "2024-08-30",
+          "completed": false
+        },
+        {
+          "name": "Beta customer onboarding",
+          "dueDate": "2024-10-04",
+          "completed": false
+        }
+      ],
+      "risks": [
+        {
+          "id": "risk-security-review",
+          "description": "Partner security audit requires additional penetration testing",
+          "impact": "medium",
+          "probability": 0.35,
+          "ownerIds": ["emp-004", "emp-005"],
+          "mitigation": "Schedule dedicated penetration test sprint and share results with partners"
+        }
+      ]
+    },
+    {
+      "id": "init-template-marketplace",
+      "name": "Template Marketplace Expansion",
+      "status": "planning",
+      "launchWindow": "2025-Q1",
+      "sponsorId": "emp-002",
+      "team": {
+        "productManagerId": "emp-005",
+        "techLeadId": "emp-003",
+        "designLeadId": "emp-002"
+      },
+      "milestones": [
+        {
+          "name": "Partner onboarding framework",
+          "dueDate": "2024-09-20",
+          "completed": false
+        }
+      ],
+      "risks": []
+    }
+  ],
+  "products": [
+    {
+      "sku": "AUT-400",
+      "name": "Automation Hub",
+      "tier": "enterprise",
+      "activeUsers": 12680,
+      "monthlyRecurringRevenue": 319500,
+      "customerSatisfactionScore": 4.6,
+      "roadmap": {
+        "currentRelease": "2024.6",
+        "nextRelease": "2024.9",
+        "upcomingHighlights": [
+          "Zero-downtime deployments",
+          "Workflow insights dashboard",
+          "Role-based workspace templates"
+        ]
+      }
+    },
+    {
+      "sku": "COL-105",
+      "name": "Collaboration Suite",
+      "tier": "growth",
+      "activeUsers": 10020,
+      "monthlyRecurringRevenue": 170200,
+      "customerSatisfactionScore": 4.3,
+      "roadmap": {
+        "currentRelease": "2024.5",
+        "nextRelease": "2024.7",
+        "upcomingHighlights": [
+          "Unified search",
+          "AI-assisted task summaries",
+          "Calendar automation"
+        ]
+      }
+    }
+  ],
+  "integrations": {
+    "crm": {
+      "provider": "Salesforce",
+      "status": "connected",
+      "lastSync": "2024-05-19T02:45:00Z",
+      "notes": "Configured for bi-directional sync"
+    },
+    "communication": {
+      "provider": "Slack",
+      "status": "connected",
+      "lastSync": "2024-05-19T02:50:00Z",
+      "notes": "Using granular channel scopes"
+    },
+    "support": {
+      "provider": "Zendesk",
+      "status": "pending",
+      "lastSync": null,
+      "notes": "Security review scheduled for June 3"
+    }
+  },
+  "analytics": {
+    "monthlyActiveUsers": 22480,
+    "workspaceAutomations": {
+      "total": 182000,
+      "last30Days": 18450,
+      "topTemplates": [
+        {
+          "templateId": "tmpl-customer-onboarding",
+          "usage": 4360
+        },
+        {
+          "templateId": "tmpl-incident-response",
+          "usage": 3925
+        }
+      ]
+    },
+    "support": {
+      "avgFirstResponseHours": 1.8,
+      "csat": 4.5,
+      "openTickets": 18
+    }
+  }
+}
