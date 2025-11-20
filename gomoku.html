@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋游戏 - 重新开始</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f5f5dc; /* 米色背景 */
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .status {
+            font-size: 18px;
+            margin-bottom: 15px;
+            height: 25px;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            gap: 0;
+            border: 3px solid #8B4513; /* 棕色边框 */
+            background-color: #DEB887; /* 棋盘背景色 */
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .grid-line {
+            position: absolute;
+            background-color: #8B4513;
+        }
+        
+        .horizontal-line {
+            width: 100%;
+            height: 1px;
+            left: 0;
+        }
+        
+        .vertical-line {
+            width: 1px;
+            height: 100%;
+            top: 0;
+        }
+        
+        .cell {
+            width: 30px;
+            height: 30px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1;
+        }
+        
+        .cell:hover::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            z-index: 2;
+        }
+        
+        .stone {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 3;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .black {
+            background: radial-gradient(circle at 30% 30%, #555, #000);
+        }
+        
+        .white {
+            background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+            border: 1px solid #999;
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #5a8c5a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #4a7a4a;
+        }
+        
+        .win-message {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d9534f;
+            margin: 15px 0;
+            text-align: center;
+            min-height: 30px;
+        }
+        
+        .winning-stone {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <h1>五子棋游戏 (Gomoku)</h1>
+    <div class="game-container">
+        <div class="status">
+            当前玩家: <span id="current-player">黑棋</span>
+        </div>
+        <div class="board" id="board"></div>
+        <div class="win-message" id="win-message"></div>
+        <div class="controls">
+            <button id="reset-btn">重新开始</button>
+            <button id="undo-btn">悔棋</button>
+        </div>
+    </div>
+
+    <script>
+        class Gomoku {
+            constructor() {
+                this.boardSize = 15;
+                this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(0));
+                this.currentPlayer = 1; // 1: 黑棋, 2: 白棋
+                this.gameOver = false;
+                this.moveHistory = [];
+                this.winningStones = [];
+                
+                this.createBoard();
+                this.bindEvents();
+            }
+            
+            createBoard() {
+                const boardElement = document.getElementById('board');
+                boardElement.innerHTML = '';
+                
+                // 创建网格线
+                for (let i = 0; i < this.boardSize; i++) {
+                    // 水平线
+                    const hLine = document.createElement('div');
+                    hLine.className = 'grid-line horizontal-line';
+                    hLine.style.top = (i * 30) + 'px';
+                    boardElement.appendChild(hLine);
+                    
+                    // 垂直线
+                    const vLine = document.createElement('div');
+                    vLine.className = 'grid-line vertical-line';
+                    vLine.style.left = (i * 30) + 'px';
+                    boardElement.appendChild(vLine);
+                }
+                
+                // 创建棋格
+                for (let row = 0; row < this.boardSize; row++) {
+                    for (let col = 0; col < this.boardSize; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        cell.addEventListener('click', (e) => this.handleCellClick(e));
+                        boardElement.appendChild(cell);
+                    }
+                }
+            }
+            
+            bindEvents() {
+                document.getElementById('reset-btn').addEventListener('click', () => this.reset());
+                document.getElementById('undo-btn').addEventListener('click', () => this.undoMove());
+            }
+            
+            handleCellClick(event) {
+                if (this.gameOver) return;
+                
+                const row = parseInt(event.target.dataset.row);
+                const col = parseInt(event.target.dataset.col);
+                
+                if (this.board[row][col] !== 0) return; // 位置已被占用
+                
+                // 记录移动
+                this.moveHistory.push({row, col, player: this.currentPlayer});
+                
+                // 放置棋子
+                this.board[row][col] = this.currentPlayer;
+                this.drawStone(row, col, this.currentPlayer);
+                
+                // 检查胜负
+                if (this.checkWin(row, col)) {
+                    this.gameOver = true;
+                    const winner = this.currentPlayer === 1 ? '黑棋' : '白棋';
+                    document.getElementById('win-message').textContent = `${winner} 获胜！`;
+                    this.highlightWinningStones();
+                } else {
+                    // 切换玩家
+                    this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+                    document.getElementById('current-player').textContent = this.currentPlayer === 1 ? '黑棋' : '白棋';
+                }
+            }
+            
+            drawStone(row, col, player) {
+                const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                const stone = document.createElement('div');
+                stone.className = `stone ${player === 1 ? 'black' : 'white'}`;
+                stone.dataset.row = row;
+                stone.dataset.col = col;
+                cell.appendChild(stone);
+            }
+            
+            checkWin(row, col) {
+                const player = this.board[row][col];
+                this.winningStones = [{row, col}];
+                
+                // 检查四个方向
+                const directions = [
+                    {dr: 0, dc: 1},  // 水平
+                    {dr: 1, dc: 0},  // 垂直
+                    {dr: 1, dc: 1},  // 对角线1
+                    {dr: 1, dc: -1}  // 对角线2
+                ];
+                
+                for (const dir of directions) {
+                    const count = 1 + this.countDirection(row, col, dir.dr, dir.dc, player) + 
+                                  this.countDirection(row, col, -dir.dr, -dir.dc, player);
+                    if (count >= 5) {
+                        // 计算获胜棋子位置
+                        this.winningStones = this.getWinningStones(row, col, dir, player);
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+            
+            countDirection(row, col, dr, dc, player) {
+                let count = 0;
+                let r = row + dr;
+                let c = col + dc;
+                
+                while (r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize && this.board[r][c] === player) {
+                    count++;
+                    r += dr;
+                    c += dc;
+                }
+                
+                return count;
+            }
+            
+            getWinningStones(row, col, dir, player) {
+                const stones = [{row, col}];
+                let r, c;
+                
+                // 正方向
+                r = row + dir.dr;
+                c = col + dir.dc;
+                while (r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize && this.board[r][c] === player && stones.length < 5) {
+                    stones.push({row: r, col: c});
+                    r += dir.dr;
+                    c += dir.dc;
+                }
+                
+                // 反方向
+                if (stones.length < 5) {
+                    r = row - dir.dr;
+                    c = col - dir.dc;
+                    while (r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize && this.board[r][c] === player && stones.length < 5) {
+                        stones.push({row: r, col: c});
+                        r -= dir.dr;
+                        c -= dir.dc;
+                    }
+                }
+                
+                return stones;
+            }
+            
+            highlightWinningStones() {
+                for (const stonePos of this.winningStones) {
+                    const stoneElement = document.querySelector(`.stone[data-row="${stonePos.row}"][data-col="${stonePos.col}"]`);
+                    if (stoneElement) {
+                        stoneElement.classList.add('winning-stone');
+                    }
+                }
+            }
+            
+            reset() {
+                this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(0));
+                this.currentPlayer = 1;
+                this.gameOver = false;
+                this.moveHistory = [];
+                this.winningStones = [];
+                
+                document.getElementById('current-player').textContent = '黑棋';
+                document.getElementById('win-message').textContent = '';
+                
+                this.createBoard();
+                this.bindEvents();
+            }
+            
+            undoMove() {
+                if (this.gameOver || this.moveHistory.length === 0) return;
+                
+                const lastMove = this.moveHistory.pop();
+                this.board[lastMove.row][lastMove.col] = 0;
+                
+                // 移除棋子DOM元素
+                const cell = document.querySelector(`.cell[data-row="${lastMove.row}"][data-col="${lastMove.col}"]`);
+                const stone = cell.querySelector('.stone');
+                if (stone) {
+                    cell.removeChild(stone);
+                }
+                
+                // 切换回上一个玩家
+                this.currentPlayer = lastMove.player;
+                document.getElementById('current-player').textContent = this.currentPlayer === 1 ? '黑棋' : '白棋';
+                
+                this.gameOver = false;
+                document.getElementById('win-message').textContent = '';
+            }
+        }
+        
+        // 页面加载完成后初始化游戏
+        document.addEventListener('DOMContentLoaded', () => {
+            new Gomoku();
+        });
+    </script>
+</body>
+</html>

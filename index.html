@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        
+        h1 {
+            color: #333;
+        }
+        
+        .game-info {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            gap: 0;
+            border: 2px solid #8B4513;
+            background-color: #DEB887;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 0.5px solid #8B4513;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .cell:hover::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+        }
+        
+        .stone {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 1;
+        }
+        
+        .black {
+            background: radial-gradient(circle at 30% 30%, #555, #000);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .white {
+            background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .win-message {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d9534f;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>五子棋游戏</h1>
+    <div class="game-info">当前玩家: <span id="current-player">黑棋</span></div>
+    <div class="board" id="board"></div>
+    <div class="win-message" id="win-message"></div>
+    <div class="controls">
+        <button id="reset-btn">重新开始</button>
+    </div>
+
+    <script>
+        class GomokuGame {
+            constructor() {
+                this.boardSize = 15;
+                this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(0));
+                this.currentPlayer = 1; // 1 for black, 2 for white
+                this.gameOver = false;
+                this.initBoard();
+                this.bindEvents();
+            }
+            
+            initBoard() {
+                const boardElement = document.getElementById('board');
+                boardElement.innerHTML = '';
+                
+                for (let row = 0; row < this.boardSize; row++) {
+                    for (let col = 0; col < this.boardSize; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        cell.addEventListener('click', (e) => this.handleCellClick(e));
+                        boardElement.appendChild(cell);
+                    }
+                }
+            }
+            
+            bindEvents() {
+                document.getElementById('reset-btn').addEventListener('click', () => this.resetGame());
+            }
+            
+            handleCellClick(event) {
+                if (this.gameOver) return;
+                
+                const row = parseInt(event.target.dataset.row);
+                const col = parseInt(event.target.dataset.col);
+                
+                if (this.board[row][col] !== 0) return; // Cell already occupied
+                
+                this.board[row][col] = this.currentPlayer;
+                this.drawStone(row, col, this.currentPlayer);
+                
+                if (this.checkWin(row, col)) {
+                    this.gameOver = true;
+                    const winner = this.currentPlayer === 1 ? '黑棋' : '白棋';
+                    document.getElementById('win-message').textContent = `${winner} 获胜！`;
+                    document.getElementById('win-message').style.display = 'block';
+                } else {
+                    this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+                    document.getElementById('current-player').textContent = this.currentPlayer === 1 ? '黑棋' : '白棋';
+                }
+            }
+            
+            drawStone(row, col, player) {
+                const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                const stone = document.createElement('div');
+                stone.className = `stone ${player === 1 ? 'black' : 'white'}`;
+                cell.appendChild(stone);
+            }
+            
+            checkWin(row, col) {
+                const player = this.board[row][col];
+                
+                // Check horizontal
+                if (this.countDirection(row, col, 0, 1, player) >= 5) return true;
+                
+                // Check vertical
+                if (this.countDirection(row, col, 1, 0, player) >= 5) return true;
+                
+                // Check diagonal (top-left to bottom-right)
+                if (this.countDirection(row, col, 1, 1, player) >= 5) return true;
+                
+                // Check diagonal (top-right to bottom-left)
+                if (this.countDirection(row, col, 1, -1, player) >= 5) return true;
+                
+                return false;
+            }
+            
+            countDirection(row, col, deltaRow, deltaCol, player) {
+                let count = 1; // Count the current stone
+                
+                // Count in positive direction
+                let r = row + deltaRow;
+                let c = col + deltaCol;
+                while (r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize && this.board[r][c] === player) {
+                    count++;
+                    r += deltaRow;
+                    c += deltaCol;
+                }
+                
+                // Count in negative direction
+                r = row - deltaRow;
+                c = col - deltaCol;
+                while (r >= 0 && r < this.boardSize && c >= 0 && c < this.boardSize && this.board[r][c] === player) {
+                    count++;
+                    r -= deltaRow;
+                    c -= deltaCol;
+                }
+                
+                return count;
+            }
+            
+            resetGame() {
+                this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(0));
+                this.currentPlayer = 1;
+                this.gameOver = false;
+                document.getElementById('current-player').textContent = '黑棋';
+                document.getElementById('win-message').style.display = 'none';
+                this.initBoard();
+            }
+        }
+        
+        // Start the game when page loads
+        window.onload = () => {
+            new GomokuGame();
+        };
+    </script>
+</body>
+</html>
