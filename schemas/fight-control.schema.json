@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/fight-control.schema.json",
+  "title": "Fight Control Command",
+  "description": "Schema describing control commands for managing a fighting session lifecycle.",
+  "type": "object",
+  "required": ["action", "target"],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "description": "Lifecycle command to execute for the fighting session.",
+      "enum": ["start", "pause", "resume", "stop", "restart"]
+    },
+    "target": {
+      "$ref": "#/$defs/target"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 280,
+      "description": "Human-readable explanation for stop or restart commands."
+    },
+    "requestedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp indicating when the command was issued."
+    },
+    "options": {
+      "type": "object",
+      "description": "Additional configuration for the command.",
+      "additionalProperties": false,
+      "properties": {
+        "rounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15,
+          "description": "Total number of rounds for a start command."
+        },
+        "countdown": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60,
+          "description": "Number of seconds to wait before executing the command."
+        },
+        "preserveState": {
+          "type": "boolean",
+          "description": "Whether to keep the previous state when restarting a fight."
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Tracing and auditing metadata attached to the command.",
+      "additionalProperties": false,
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9\\-]{8,36}$",
+          "description": "Unique identifier for the command invocation."
+        },
+        "issuedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Name or identifier of the entity issuing the command."
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional notes describing the context of the command."
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"action": {"const": "start"}}
+      },
+      "then": {
+        "required": ["options"],
+        "properties": {
+          "options": {
+            "required": ["rounds"],
+            "properties": {
+              "rounds": {"type": "integer"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"action": {"enum": ["stop", "restart"]}}
+      },
+      "then": {
+        "required": ["reason"],
+        "properties": {
+          "options": {
+            "properties": {
+              "preserveState": {
+                "const": true,
+                "description": "Restart must preserve state unless explicitly overridden."
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "target": {
+      "type": "object",
+      "description": "Entity that the command should be applied to.",
+      "required": ["type", "id"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["match", "fighter", "tournament"],
+          "description": "Type of entity to control."
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Unique identifier of the target entity."
+        }
+      }
+    }
+  }
+}
